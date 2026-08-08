@@ -10,6 +10,11 @@ venv/
 env/
 ENV/
 
+# Frontend build outputs and caches
+frontend/dist/
+frontend/*.tsbuildinfo
+frontend/node_modules/
+
 # Jupyter / notebook checkpoints
 .ipynb_checkpoints/
 
