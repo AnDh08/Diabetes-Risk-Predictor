@@ -2,7 +2,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 class PredictionRequest(BaseModel):
-    '''Schema for the request payload of a diabetes risk prediction.'''
+    """Schema for the request payload of a diabetes risk prediction."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -29,7 +29,7 @@ class PredictionRequest(BaseModel):
     Income: int = Field(..., ge=1, le=8)
 
 class PredictionResponse(BaseModel):
-    '''Schema for the response payload of a diabetes risk prediction.'''
+    """Schema for the response payload of a diabetes risk prediction."""
 
     model_config = ConfigDict(extra="forbid")
 
