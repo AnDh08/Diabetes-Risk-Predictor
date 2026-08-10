@@ -11,9 +11,3 @@ Closes #
 ## Testing
 
 Describe tests performed.
-
-## Checklist
-
-- [ ] Code follows project style
-- [ ] Documentation updated
-- [ ] Tests added if needed
