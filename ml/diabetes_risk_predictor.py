@@ -18,6 +18,7 @@ from sklearn.pipeline import Pipeline as SkPipeline
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer, StandardScaler
 from sklearn.tree import DecisionTreeClassifier
+from ml.preprocessing import feature_cols, make_features
 
 warnings.filterwarnings("ignore")
 
@@ -43,32 +44,6 @@ try:
 except ImportError:
     CatBoostClassifier = None
 
-FEATURE_COLS = [
-    "HighBP",
-    "HighChol",
-    "CholCheck",
-    "BMI",
-    "Smoker",
-    "Stroke",
-    "HeartDiseaseorAttack",
-    "PhysActivity",
-    "Fruits",
-    "Veggies",
-    "HvyAlcoholConsump",
-    "AnyHealthcare",
-    "NoDocbcCost",
-    "GenHlth",
-    "MentHlth",
-    "PhysHlth",
-    "DiffWalk",
-    "Sex",
-    "Age",
-    "Education",
-    "Income",
-    "IsSenior",
-    "PoorAct&PoorDiet",
-]
-
 # Keep the random seed fixed so model comparisons are reproducible across runs
 def set_seed(seed: int = RANDOM_STATE) -> None:
     random.seed(seed)
@@ -78,13 +53,6 @@ def load_dataset(path: Path) -> pd.DataFrame:
     if not path.exists():
         raise FileNotFoundError(f"Dataset not found: {path}")
     return pd.read_csv(path)
-
-def make_features(df_in: pd.DataFrame) -> pd.DataFrame:
-    df = df_in.copy()
-    # These features capture age-related risk and a combined unhealthy lifestyle signal
-    df["IsSenior"] = (df["Age"] >= 9).astype(float)
-    df["PoorAct&PoorDiet"] = ((df["PhysActivity"] == 0) & ((df["Fruits"] == 0) | (df["Veggies"] == 0))).astype(float)
-    return df[FEATURE_COLS]
 
 def build_preprocessor(feature_names: list[str]) -> ColumnTransformer:
     numeric_transformer = Pipeline(
@@ -268,7 +236,7 @@ def main() -> None:
     ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
     # Save the deployable pipeline and feature list alongside the notebook outputs
     joblib.dump(final_pipeline, FINAL_PIPELINE_PATH)
-    joblib.dump(FEATURE_COLS, FEATURE_COLS_PATH)
+    joblib.dump(feature_cols, FEATURE_COLS_PATH)
     print("Saved pipeline to", FINAL_PIPELINE_PATH)
     print("Saved feature columns to", FEATURE_COLS_PATH)
 
