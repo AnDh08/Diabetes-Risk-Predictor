@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.routes.predict import router as predict_router
+
 app = FastAPI(title="Diabetes Risk Predictor API")
 
 app.add_middleware(
@@ -10,6 +12,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(predict_router)
 
 @app.get("/")
 def read_root() -> dict[str, str]:

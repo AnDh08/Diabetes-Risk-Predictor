@@ -1,3 +1,3 @@
-from .predict import PredictionRequest, PredictionResponse
+from .prediction import PredictionRequest, PredictionResponse
 
 __all__ = ["PredictionRequest", "PredictionResponse"]
