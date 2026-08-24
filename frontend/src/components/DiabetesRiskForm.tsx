@@ -1,7 +1,11 @@
 import { useState } from 'react'
 import { defaultPredictionFormData, type PredictionFormData } from '../types/prediction'
 
-const DiabetesRiskForm = () => {
+type DiabetesRiskFormProps = {
+    onSubmit?: (data: PredictionFormData) => void
+}
+
+const DiabetesRiskForm = ({ onSubmit }: DiabetesRiskFormProps) => {
     const [formData, setFormData] = useState<PredictionFormData>(defaultPredictionFormData)
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -21,6 +25,7 @@ const DiabetesRiskForm = () => {
         }
 
         console.log('Form submitted:', formData)
+        onSubmit?.(formData)
     }
 
     return (
