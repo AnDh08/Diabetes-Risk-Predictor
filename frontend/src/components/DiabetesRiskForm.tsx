@@ -15,15 +15,20 @@ const DiabetesRiskForm = () => {
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()
+
+        if (!event.currentTarget.reportValidity()) {
+            return
+        }
+
         console.log('Form submitted:', formData)
     }
 
     return (
-        <form onSubmit={handleSubmit}>
+        <form className="diabetes-form" onSubmit={handleSubmit}>
             <h1>Diabetes Risk Form</h1>
-            <p>This estimate is for informational purposes only and is not a medical diagnosis.</p>
+            <p className="form-disclaimer">This estimate is for informational purposes only and is not a medical diagnosis.</p>
 
-            <fieldset>
+            <fieldset className="form-section">
                 <legend>Medical history</legend>
 
                 <label htmlFor="HighBP">Diagnosed with high blood pressure?</label>
@@ -119,7 +124,7 @@ const DiabetesRiskForm = () => {
 
             </fieldset>
 
-            <fieldset>
+            <fieldset className="form-section">
                 <legend>Lifestyle</legend>
 
                 <label htmlFor="PhysActivity">Did you do physical activity in the past 30 days?</label>
@@ -176,7 +181,7 @@ const DiabetesRiskForm = () => {
 
             </fieldset>
 
-            <fieldset>
+            <fieldset className="form-section">
                 <legend>Healthcare access</legend>
 
                 <label htmlFor="AnyHealthcare">Do you have healthcare coverage?</label>
@@ -207,7 +212,7 @@ const DiabetesRiskForm = () => {
 
             </fieldset>
 
-            <fieldset>
+            <fieldset className="form-section">
                 <legend>Wellbeing</legend>
 
                 <label htmlFor="GenHlth">How would you rate your general health?</label>
@@ -267,7 +272,7 @@ const DiabetesRiskForm = () => {
 
             </fieldset>
 
-            <fieldset>
+            <fieldset className="form-section">
                 <legend>Demographics</legend>
 
                 <label htmlFor="Sex">Sex:</label>
@@ -342,7 +347,7 @@ const DiabetesRiskForm = () => {
                 </select>
             </fieldset>
 
-            <button type="submit">Submit</button>
+            <button className="submit-button" type="submit">Submit</button>
         </form>
     )
 }
