@@ -1,19 +1,17 @@
 import { useState } from 'react'
-import { predictDiabetesRisk } from '../api/prediction'
 import {
     defaultPredictionFormData,
     type PredictionFormData,
     type PredictionRequest,
-    type PredictionResponse,
 } from '../types/prediction'
 
 type DiabetesRiskFormProps = {
-    onSubmit?: (data: PredictionFormData) => void
+    onSubmit?: (data: PredictionRequest) => void | Promise<void>
+    isLoading?: boolean
 }
 
-const DiabetesRiskForm = ({ onSubmit }: DiabetesRiskFormProps) => {
+const DiabetesRiskForm = ({ onSubmit, isLoading = false }: DiabetesRiskFormProps) => {
     const [formData, setFormData] = useState<PredictionFormData>(defaultPredictionFormData)
-    const [prediction, setPrediction] = useState<PredictionResponse | null>(null)
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = event.target
@@ -24,21 +22,18 @@ const DiabetesRiskForm = ({ onSubmit }: DiabetesRiskFormProps) => {
         }))
     }
 
-    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()
 
         if (!event.currentTarget.reportValidity()) {
             return
         }
 
-        onSubmit?.(formData)
-
         const request = Object.fromEntries(
             Object.entries(formData).map(([field, value]) => [field, Number(value)]),
         ) as PredictionRequest
 
-        const response = await predictDiabetesRisk(request)
-        setPrediction(response)
+        onSubmit?.(request)
     }
 
     return (
@@ -365,13 +360,9 @@ const DiabetesRiskForm = ({ onSubmit }: DiabetesRiskFormProps) => {
                 </select>
             </fieldset>
 
-            <button className="submit-button" type="submit">Submit</button>
-
-            {prediction && (
-                <p role="status">
-                    Prediction: {prediction.risk_level} ({Math.round(prediction.probability * 100)}% probability)
-                </p>
-            )}
+            <button className="submit-button" type="submit" disabled={isLoading}>
+                {isLoading ? 'Submitting...' : 'Submit'}
+            </button>
         </form>
     )
 }
