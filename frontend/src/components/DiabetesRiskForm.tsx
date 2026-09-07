@@ -1,5 +1,11 @@
 import { useState } from 'react'
-import { defaultPredictionFormData, type PredictionFormData } from '../types/prediction'
+import { predictDiabetesRisk } from '../api/prediction'
+import {
+    defaultPredictionFormData,
+    type PredictionFormData,
+    type PredictionRequest,
+    type PredictionResponse,
+} from '../types/prediction'
 
 type DiabetesRiskFormProps = {
     onSubmit?: (data: PredictionFormData) => void
@@ -7,6 +13,7 @@ type DiabetesRiskFormProps = {
 
 const DiabetesRiskForm = ({ onSubmit }: DiabetesRiskFormProps) => {
     const [formData, setFormData] = useState<PredictionFormData>(defaultPredictionFormData)
+    const [prediction, setPrediction] = useState<PredictionResponse | null>(null)
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = event.target
@@ -17,15 +24,21 @@ const DiabetesRiskForm = ({ onSubmit }: DiabetesRiskFormProps) => {
         }))
     }
 
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()
 
         if (!event.currentTarget.reportValidity()) {
             return
         }
 
-        console.log('Form submitted:', formData)
         onSubmit?.(formData)
+
+        const request = Object.fromEntries(
+            Object.entries(formData).map(([field, value]) => [field, Number(value)]),
+        ) as PredictionRequest
+
+        const response = await predictDiabetesRisk(request)
+        setPrediction(response)
     }
 
     return (
@@ -353,6 +366,12 @@ const DiabetesRiskForm = ({ onSubmit }: DiabetesRiskFormProps) => {
             </fieldset>
 
             <button className="submit-button" type="submit">Submit</button>
+
+            {prediction && (
+                <p role="status">
+                    Prediction: {prediction.risk_level} ({Math.round(prediction.probability * 100)}% probability)
+                </p>
+            )}
         </form>
     )
 }
