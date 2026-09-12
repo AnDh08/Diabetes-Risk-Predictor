@@ -1,14 +1,20 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { predictDiabetesRisk } from '../api/prediction'
 import DiabetesRiskForm from '../components/DiabetesRiskForm'
 import type { PredictionRequest, PredictionResponse } from '../types/prediction'
 
 const PredictionPage = () => {
+    const isSubmitting = useRef(false)
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [prediction, setPrediction] = useState<PredictionResponse | null>(null)
 
     const handleSubmit = async (request: PredictionRequest) => {
+        if (isSubmitting.current) {
+            return
+        }
+
+        isSubmitting.current = true
         setIsLoading(true)
         setError(null)
         setPrediction(null)
@@ -26,6 +32,7 @@ const PredictionPage = () => {
                     : 'Unable to connect to the prediction service. Please try again.',
             )
         } finally {
+            isSubmitting.current = false
             setIsLoading(false)
         }
     }
