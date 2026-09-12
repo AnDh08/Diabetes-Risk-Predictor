@@ -1,8 +1,8 @@
-import DiabetesRiskForm from './components/DiabetesRiskForm'
+import PredictionPage from './pages/PredictionPage'
 import './App.css'
 
 const App = () => {
-  return <DiabetesRiskForm />
+  return <PredictionPage />
 }
 
 export default App

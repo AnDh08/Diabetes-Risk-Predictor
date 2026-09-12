@@ -1,11 +1,16 @@
 import { useState } from 'react'
-import { defaultPredictionFormData, type PredictionFormData } from '../types/prediction'
+import {
+    defaultPredictionFormData,
+    type PredictionFormData,
+    type PredictionRequest,
+} from '../types/prediction'
 
 type DiabetesRiskFormProps = {
-    onSubmit?: (data: PredictionFormData) => void
+    onSubmit?: (data: PredictionRequest) => void | Promise<void>
+    isLoading?: boolean
 }
 
-const DiabetesRiskForm = ({ onSubmit }: DiabetesRiskFormProps) => {
+const DiabetesRiskForm = ({ onSubmit, isLoading = false }: DiabetesRiskFormProps) => {
     const [formData, setFormData] = useState<PredictionFormData>(defaultPredictionFormData)
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -24,8 +29,11 @@ const DiabetesRiskForm = ({ onSubmit }: DiabetesRiskFormProps) => {
             return
         }
 
-        console.log('Form submitted:', formData)
-        onSubmit?.(formData)
+        const request = Object.fromEntries(
+            Object.entries(formData).map(([field, value]) => [field, Number(value)]),
+        ) as PredictionRequest
+
+        onSubmit?.(request)
     }
 
     return (
@@ -352,7 +360,9 @@ const DiabetesRiskForm = ({ onSubmit }: DiabetesRiskFormProps) => {
                 </select>
             </fieldset>
 
-            <button className="submit-button" type="submit">Submit</button>
+            <button className="submit-button" type="submit" disabled={isLoading}>
+                {isLoading ? 'Submitting...' : 'Submit'}
+            </button>
         </form>
     )
 }
