@@ -23,8 +23,31 @@ describe('PredictionPage', () => {
         fillForm()
         submitForm()
 
-        expect(await screen.findByRole('status')).toHaveTextContent('high_risk (73% probability)')
+        expect(await screen.findByRole('heading', { name: 'High risk' })).toBeInTheDocument()
+        expect(screen.getByText('73%')).toBeInTheDocument()
         expect(predictDiabetesRisk).toHaveBeenCalledOnce()
+    })
+
+    it('resets the form when starting a new assessment', async () => {
+        vi.mocked(predictDiabetesRisk).mockResolvedValue({
+            prediction: 1,
+            probability: 0.73,
+            risk_level: 'high_risk',
+        })
+        render(<PredictionPage />)
+
+        fillForm()
+        submitForm()
+
+        expect(await screen.findByRole('heading', { name: 'High risk' })).toBeInTheDocument()
+
+        fireEvent.click(screen.getByRole('button', { name: 'Start new assessment' }))
+
+        await waitFor(() => {
+            expect(screen.queryByRole('heading', { name: 'High risk' })).not.toBeInTheDocument()
+            expect(screen.getByLabelText('Diagnosed with high blood pressure?')).toHaveValue('')
+            expect(screen.getByLabelText('Diagnosed with high blood pressure?')).toHaveFocus()
+        })
     })
 
     it('shows loading state while the request is pending', () => {
