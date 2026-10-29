@@ -78,7 +78,7 @@ const PredictionPage = () => {
     }
 
     return (
-        <main>
+        <main className="prediction-page">
             <div ref={formRef}>
                 <DiabetesRiskForm key={formVersion} onSubmit={handleSubmit} isLoading={isLoading} />
             </div>

@@ -32,6 +32,10 @@ describe('DiabetesRiskForm', () => {
         fireEvent.submit(screen.getByRole('button', { name: 'Submit' }))
 
         expect(onSubmit).not.toHaveBeenCalled()
+        expect(screen.getByRole('alert')).toHaveTextContent('Please fix 21 fields')
+        expect(screen.getByText('Diagnosed with high blood pressure?: please provide an answer.')).toBeInTheDocument()
+        expect(screen.getByLabelText('Diagnosed with high blood pressure?')).toHaveAttribute('aria-invalid', 'true')
+        expect(screen.getByLabelText('Diagnosed with high blood pressure?')).toHaveFocus()
     })
 
     it('blocks submission when BMI is outside the allowed range', () => {
@@ -42,6 +46,19 @@ describe('DiabetesRiskForm', () => {
         fireEvent.submit(screen.getByRole('button', { name: 'Submit' }))
 
         expect(onSubmit).not.toHaveBeenCalled()
+        expect(screen.getByText('Body mass index (BMI): enter a value from 10 to 80.')).toBeInTheDocument()
+        expect(screen.getByLabelText('Body mass index (BMI):')).toHaveAttribute('aria-invalid', 'true')
+    })
+
+    it('clears a field error after the answer is corrected', () => {
+        render(<DiabetesRiskForm />)
+        const highBloodPressure = screen.getByLabelText('Diagnosed with high blood pressure?')
+
+        fireEvent.submit(screen.getByRole('button', { name: 'Submit' }))
+        fireEvent.change(highBloodPressure, { target: { value: '1' } })
+
+        expect(screen.queryByText('Diagnosed with high blood pressure?: please provide an answer.')).not.toBeInTheDocument()
+        expect(highBloodPressure).not.toHaveAttribute('aria-invalid')
     })
 
     it('blocks submission when health days exceed 30', () => {

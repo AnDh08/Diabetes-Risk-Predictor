@@ -3,7 +3,9 @@
 }
 
 :root {
-	font-family: Georgia, 'Times New Roman', serif;
+	font-family: Inter, 'Segoe UI', Arial, sans-serif;
+	font-size: 100%;
+	line-height: 1.5;
 	color: #182334;
 	background: #e8f0f2;
 	font-synthesis: none;

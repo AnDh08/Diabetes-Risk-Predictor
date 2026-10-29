@@ -10,22 +10,76 @@ type DiabetesRiskFormProps = {
     isLoading?: boolean
 }
 
+type ValidationError = {
+    id: string
+    message: string
+}
+
+const getValidationError = (control: HTMLInputElement | HTMLSelectElement): ValidationError | null => {
+    const { validity } = control
+
+    if (validity.valid) {
+        return null
+    }
+
+    const label = control.labels?.[0]?.textContent?.trim().replace(/:$/, '') ?? 'This field'
+    let message = `${label} is invalid.`
+
+    if (validity.valueMissing) {
+        message = `${label}: please provide an answer.`
+    } else if (validity.rangeUnderflow || validity.rangeOverflow) {
+        message = `${label}: enter a value from ${control.getAttribute('min')} to ${control.getAttribute('max')}.`
+    } else if (validity.stepMismatch) {
+        message = `${label}: use increments of ${control.getAttribute('step')}.`
+    } else if (validity.badInput) {
+        message = `${label}: enter a valid number.`
+    }
+
+    return { id: control.id, message }
+}
+
 const DiabetesRiskForm = ({ onSubmit, isLoading = false }: DiabetesRiskFormProps) => {
     const [formData, setFormData] = useState<PredictionFormData>(defaultPredictionFormData)
+    const [validationErrors, setValidationErrors] = useState<ValidationError[]>([])
+    const getFieldAccessibilityProps = (id: string) => {
+        const hasError = validationErrors.some((error) => error.id === id)
+
+        return {
+            'aria-invalid': hasError || undefined,
+            'aria-describedby': hasError ? `${id}-error` : undefined,
+        }
+    }
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = event.target
+        const updatedError = getValidationError(event.target)
 
         setFormData((currentData) => ({
             ...currentData,
             [name]: value === '' ? '' : Number(value)
         }))
+        setValidationErrors((currentErrors) => [
+            ...currentErrors.filter((error) => error.id !== event.target.id),
+            ...(updatedError ? [updatedError] : []),
+        ])
     }
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()
 
-        if (!event.currentTarget.reportValidity()) {
+        const invalidControls = Array.from(event.currentTarget.elements).filter(
+            (control): control is HTMLInputElement | HTMLSelectElement =>
+                (control instanceof HTMLInputElement || control instanceof HTMLSelectElement) &&
+                !control.validity.valid,
+        )
+        const errors = invalidControls
+            .map(getValidationError)
+            .filter((error): error is ValidationError => error !== null)
+
+        setValidationErrors(errors)
+
+        if (errors.length > 0) {
+            invalidControls[0]?.focus()
             return
         }
 
@@ -37,9 +91,24 @@ const DiabetesRiskForm = ({ onSubmit, isLoading = false }: DiabetesRiskFormProps
     }
 
     return (
-        <form className="diabetes-form" onSubmit={handleSubmit}>
+        <form className="diabetes-form" onSubmit={handleSubmit} noValidate>
             <h1>Diabetes Risk Form</h1>
             <p className="form-disclaimer">This estimate is for informational purposes only and is not a medical diagnosis.</p>
+
+            {validationErrors.length > 0 && (
+                <div className="validation-errors" role="alert" aria-labelledby="validation-error-title">
+                    <h2 id="validation-error-title">
+                        Please fix {validationErrors.length} {validationErrors.length === 1 ? 'field' : 'fields'}
+                    </h2>
+                    <ul>
+                        {validationErrors.map((error) => (
+                            <li key={error.id} id={`${error.id}-error`}>
+                                <a href={`#${error.id}`}>{error.message}</a>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
 
             <fieldset className="form-section">
                 <legend>Medical history</legend>
@@ -48,6 +117,7 @@ const DiabetesRiskForm = ({ onSubmit, isLoading = false }: DiabetesRiskFormProps
                 <select
                     id="HighBP"
                     name="HighBP"
+                    {...getFieldAccessibilityProps('HighBP')}
                     value={formData.HighBP}
                     onChange={handleChange}
                     required
@@ -61,6 +131,7 @@ const DiabetesRiskForm = ({ onSubmit, isLoading = false }: DiabetesRiskFormProps
                 <select
                     id="HighChol"
                     name="HighChol"
+                    {...getFieldAccessibilityProps('HighChol')}
                     value={formData.HighChol}
                     onChange={handleChange}
                     required
@@ -74,6 +145,7 @@ const DiabetesRiskForm = ({ onSubmit, isLoading = false }: DiabetesRiskFormProps
                 <select
                     id="CholCheck"
                     name="CholCheck"
+                    {...getFieldAccessibilityProps('CholCheck')}
                     value={formData.CholCheck}
                     onChange={handleChange}
                     required
@@ -87,6 +159,7 @@ const DiabetesRiskForm = ({ onSubmit, isLoading = false }: DiabetesRiskFormProps
                 <input
                     id="BMI"
                     name="BMI"
+                    {...getFieldAccessibilityProps('BMI')}
                     type="number"
                     min="10"
                     max="80"
@@ -100,6 +173,7 @@ const DiabetesRiskForm = ({ onSubmit, isLoading = false }: DiabetesRiskFormProps
                 <select
                     id="Smoker"
                     name="Smoker"
+                    {...getFieldAccessibilityProps('Smoker')}
                     value={formData.Smoker}
                     onChange={handleChange}
                     required
@@ -113,6 +187,7 @@ const DiabetesRiskForm = ({ onSubmit, isLoading = false }: DiabetesRiskFormProps
                 <select
                     id="Stroke"
                     name="Stroke"
+                    {...getFieldAccessibilityProps('Stroke')}
                     value={formData.Stroke}
                     onChange={handleChange}
                     required
@@ -126,6 +201,7 @@ const DiabetesRiskForm = ({ onSubmit, isLoading = false }: DiabetesRiskFormProps
                 <select
                     id="HeartDiseaseorAttack"
                     name="HeartDiseaseorAttack"
+                    {...getFieldAccessibilityProps('HeartDiseaseorAttack')}
                     value={formData.HeartDiseaseorAttack}
                     onChange={handleChange}
                     required
@@ -144,6 +220,7 @@ const DiabetesRiskForm = ({ onSubmit, isLoading = false }: DiabetesRiskFormProps
                 <select
                     id="PhysActivity"
                     name="PhysActivity"
+                    {...getFieldAccessibilityProps('PhysActivity')}
                     value={formData.PhysActivity}
                     onChange={handleChange}
                     required
@@ -157,6 +234,7 @@ const DiabetesRiskForm = ({ onSubmit, isLoading = false }: DiabetesRiskFormProps
                 <select
                     id="Fruits"
                     name="Fruits"
+                    {...getFieldAccessibilityProps('Fruits')}
                     value={formData.Fruits}
                     onChange={handleChange}
                     required
@@ -170,6 +248,7 @@ const DiabetesRiskForm = ({ onSubmit, isLoading = false }: DiabetesRiskFormProps
                 <select
                     id="Veggies"
                     name="Veggies"
+                    {...getFieldAccessibilityProps('Veggies')}
                     value={formData.Veggies}
                     onChange={handleChange}
                     required
@@ -183,6 +262,7 @@ const DiabetesRiskForm = ({ onSubmit, isLoading = false }: DiabetesRiskFormProps
                 <select
                     id="HvyAlcoholConsump"
                     name="HvyAlcoholConsump"
+                    {...getFieldAccessibilityProps('HvyAlcoholConsump')}
                     value={formData.HvyAlcoholConsump}
                     onChange={handleChange}
                     required
@@ -201,6 +281,7 @@ const DiabetesRiskForm = ({ onSubmit, isLoading = false }: DiabetesRiskFormProps
                 <select
                     id="AnyHealthcare"
                     name="AnyHealthcare"
+                    {...getFieldAccessibilityProps('AnyHealthcare')}
                     value={formData.AnyHealthcare}
                     onChange={handleChange}
                     required
@@ -214,6 +295,7 @@ const DiabetesRiskForm = ({ onSubmit, isLoading = false }: DiabetesRiskFormProps
                 <select
                     id="NoDocbcCost"
                     name="NoDocbcCost"
+                    {...getFieldAccessibilityProps('NoDocbcCost')}
                     value={formData.NoDocbcCost}
                     onChange={handleChange}
                     required
@@ -232,6 +314,7 @@ const DiabetesRiskForm = ({ onSubmit, isLoading = false }: DiabetesRiskFormProps
                 <select
                     id="GenHlth"
                     name="GenHlth"
+                    {...getFieldAccessibilityProps('GenHlth')}
                     value={formData.GenHlth}
                     onChange={handleChange}
                     required
@@ -248,6 +331,7 @@ const DiabetesRiskForm = ({ onSubmit, isLoading = false }: DiabetesRiskFormProps
                 <input
                     id="MentHlth"
                     name="MentHlth"
+                    {...getFieldAccessibilityProps('MentHlth')}
                     type="number"
                     min="0"
                     max="30"
@@ -261,6 +345,7 @@ const DiabetesRiskForm = ({ onSubmit, isLoading = false }: DiabetesRiskFormProps
                 <input
                     id="PhysHlth"
                     name="PhysHlth"
+                    {...getFieldAccessibilityProps('PhysHlth')}
                     type="number"
                     min="0"
                     max="30"
@@ -274,6 +359,7 @@ const DiabetesRiskForm = ({ onSubmit, isLoading = false }: DiabetesRiskFormProps
                 <select
                     id="DiffWalk"
                     name="DiffWalk"
+                    {...getFieldAccessibilityProps('DiffWalk')}
                     value={formData.DiffWalk}
                     onChange={handleChange}
                     required
@@ -292,6 +378,7 @@ const DiabetesRiskForm = ({ onSubmit, isLoading = false }: DiabetesRiskFormProps
                 <select
                     id="Sex"
                     name="Sex"
+                    {...getFieldAccessibilityProps('Sex')}
                     value={formData.Sex}
                     onChange={handleChange}
                     required
@@ -305,6 +392,7 @@ const DiabetesRiskForm = ({ onSubmit, isLoading = false }: DiabetesRiskFormProps
                 <select
                     id="Age"
                     name="Age"
+                    {...getFieldAccessibilityProps('Age')}
                     value={formData.Age}
                     onChange={handleChange}
                     required
@@ -328,6 +416,7 @@ const DiabetesRiskForm = ({ onSubmit, isLoading = false }: DiabetesRiskFormProps
                 <select
                     id="Education"
                     name="Education"
+                    {...getFieldAccessibilityProps('Education')}
                     value={formData.Education}
                     onChange={handleChange}
                     required
@@ -344,6 +433,7 @@ const DiabetesRiskForm = ({ onSubmit, isLoading = false }: DiabetesRiskFormProps
                 <select
                     id="Income"
                     name="Income"
+                    {...getFieldAccessibilityProps('Income')}
                     value={formData.Income}
                     onChange={handleChange}
                     required
